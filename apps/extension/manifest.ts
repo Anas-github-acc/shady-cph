@@ -1,0 +1,22 @@
+// apps/extension/manifest.config.ts
+import { DefineManifestOptions } from "@samrum/vite-plugin-web-extension";
+
+export const manifest: DefineManifestOptions = {
+  manifest_version: 3,
+  name: "Shady CP Linker",
+  version: "1.2.0",
+  description: "Parses and sends CP testcases to localhost or logs to console.",
+  permissions: ["storage"],
+  action: {
+    default_popup: "src/popup.html"
+  },
+  content_scripts: [
+    {
+      "matches": [
+        "https://codeforces.com/contest/*",
+        "https://codeforces.com/problemset/problem/*"
+      ],
+      "js": ["src/content.ts"]
+    }
+  ]
+};

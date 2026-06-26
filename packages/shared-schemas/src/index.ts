@@ -1,0 +1,22 @@
+import { z } from "zod";
+
+export const PayloadSchema = z.object({
+  parser: z.object({
+    version: z.union([z.string(), z.number()]),
+    name: z.string(),
+  }).optional(),
+  platform: z.string(),
+  problem_number: z.string().optional(),
+  contest_number: z.union([z.string(), z.number()]).optional(),
+  contestId: z.union([z.string(), z.number()]).optional(),
+  question_label: z.string().optional(),
+  problemIndex: z.string().optional(),
+  label: z.string().optional(),
+  question_url: z.string().optional(),
+  testcase: z.object({
+    input: z.string(),
+    output: z.string(),
+  }),
+});
+
+export type CPPayload = z.infer<typeof PayloadSchema>;
