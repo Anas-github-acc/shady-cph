@@ -1,4 +1,4 @@
-# 🕶️ CPH (Competitive Programming Helper) Fetch Testcases From Codeforces and Run
+# CPH (Fetch Testcases From Codeforces)
 
 A lightweight Competitive Programming Helper (CPH) CLI that automatically receives sample testcases via browser extension, stores them locally, and runs your solution against them directly from your terminal via **shady cli**.
 
@@ -7,7 +7,7 @@ No complex setup, No heavy UI. Just a fast CLI and minimal command to get the te
 ---
 
 ### Suppoted Coding Platform
-[![Codeforces]](https://codeforces.com/)
+[![Codeforces](https://img.shields.io/badge/Codeforces-Compatible-blue.svg)](https://codeforces.com/)
 
 ### Language Support
 [![C++](https://img.shields.io/badge/C%2B%2B-Supported-success.svg?logo=cplusplus&logoColor=white)](#)
