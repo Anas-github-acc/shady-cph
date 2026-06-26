@@ -7,8 +7,7 @@ No complex setup, No heavy UI. Just a fast CLI and minimal command to get the te
 ---
 
 ### Suppoted Coding Platform
-[![Platform Support](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-blue.svg)](#)
-[![Codeforces](https://img.shields.io/badge/Codeforces-Compatible-blue.svg)](https://codeforces.com/)
+[![Codeforces]](https://codeforces.com/)
 
 ### Language Support
 [![C++](https://img.shields.io/badge/C%2B%2B-Supported-success.svg?logo=cplusplus&logoColor=white)](#)
@@ -74,7 +73,7 @@ The runner compiles your solution (if needed), executes it against all saved tes
 
 ---
 
-## 🛠️ CLI Commands & Options
+## CLI Commands & Options
 
 | Command | Arguments / Options | Description |
 | :--- | :--- | :--- |
@@ -88,7 +87,7 @@ The runner compiles your solution (if needed), executes it against all saved tes
 
 ---
 
-## ✨ Features
+## Features
 - Terminal Lover
 - Automated testcase fetching.
 - Lightweight background daemon (`sd run`, `sd stop`, `sd status`, `sd logs`).
@@ -100,6 +99,6 @@ The runner compiles your solution (if needed), executes it against all saved tes
 
 ---
 
-## 📄 License
+## License
 
 [MIT](file:///home/anas/myspace/personal/shady/LICENSE)
