@@ -158,3 +158,10 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
+// Open a long-lived port to keep the background service worker alive and active
+try {
+  chrome.runtime.connect({ name: "shady-connection" });
+} catch (e) {
+  // Ignore connection errors if context is invalidated
+}
+

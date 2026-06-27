@@ -3,7 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "out/**"]
+      "outputs": ["shady-all-extension", "dist/**", ".next/**", "out/**"]
     },
     "dev": {
       "cache": false,

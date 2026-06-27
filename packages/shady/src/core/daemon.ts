@@ -187,14 +187,33 @@ export async function runDaemon(opts: { port?: number }) {
 
   let connectedSockets: any[] = [];
 
-  // 3. Ultra lightweight real-time stream endpoint
-  app.get('/stream', { websocket: true }, (connection, req) => {
-    connectedSockets.push(connection.socket);
+  app.get('/stream', { websocket: true }, (socket, req) => {
+    if (!socket) {
+      console.error(`[${new Date().toISOString()}] Empty WebSocket socket.`);
+      return;
+    }
+
+    connectedSockets.push(socket);
     console.log(`[${new Date().toISOString()}] Browser extension established a live socket stream.`);
 
-    connection.socket.on('close', () => {
-      connectedSockets = connectedSockets.filter(s => s !== connection.socket);
-      console.log(`[${new Date().toISOString()}] Browser extension closed socket stream.`);
+    socket.on('close', (code: number, reason: string) => {
+      connectedSockets = connectedSockets.filter(s => s !== socket);
+    });
+
+    socket.on('error', (err: any) => {
+      console.error(`[${new Date().toISOString()}] Socket error:`, err);
+    });
+
+    // Handle heartbeats (PING/PONG) to keep MV3 service workers alive
+    socket.on('message', (message: any) => {
+      try {
+        const parsed = JSON.parse(message.toString());
+        if (parsed.type === 'PING') {
+          socket.send(JSON.stringify({ type: 'PONG' }));
+        }
+      } catch (e) {
+        // Ignore non-JSON/unsupported messages
+      }
     });
   });
 
@@ -202,14 +221,27 @@ export async function runDaemon(opts: { port?: number }) {
     try {
       const submission = SubmissionSchema.parse(request.body);
 
+      connectedSockets.forEach((s, idx) => {
+        console.log(`  -> Socket [${idx}] readyState: ${s?.readyState}`);
+      });
+
+      // 1 = WebSocket.OPEN
+      connectedSockets = connectedSockets.filter(socket => socket && socket.readyState === 1);
+
       if (connectedSockets.length === 0) {
-        return reply.status(503).send({ ok: false, error: 'No active browser tab connected' });
+        return reply.status(503).send({ 
+          ok: false, 
+          error: 'No active browser tab is connected',
+          debugInfo: "Check server console. connectedSockets array evaluated to empty."
+        });
       }
 
       const payload = JSON.stringify({ type: 'SHADY_SUBMIT', data: submission });
       connectedSockets.forEach(socket => {
-        if (socket.readyState === 1) { // 1 === WebSocket.OPEN
+        try {
           socket.send(payload);
+        } catch (e) {
+          console.error(`[${new Date().toISOString()}] Error sending payload to socket:`, e);
         }
       });
 

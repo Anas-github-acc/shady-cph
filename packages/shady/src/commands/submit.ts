@@ -120,7 +120,7 @@ export async function submitCommand(solutionFile: string, opts: SubmitOptions) {
       process.exitCode = 1;
     }
   } catch (err: any) {
-    logger.error(`Failed to submit code to local server: ${err.message}`);
+    logger.error(`Failed to submit code via shady: ${err.message}`);
     process.exitCode = 1;
   }
 }

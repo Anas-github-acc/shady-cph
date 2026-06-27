@@ -26,7 +26,7 @@ No complex setup, No heavy UI. Just a fast CLI and minimal command to get the te
 
 **Shady CP Parser** browser extension parses sample testcases directly from competitive programming platforms (like Codeforces) and sends them to your local CLI server.
 
-The CLI starts a small local background daemon/server that listens for incoming testcases, stores them in your project, and lets you test solutions with a single command.
+The CLI starts a small local background daemon/server that listens for incoming testcase, stores them in your project, and lets you test solutions with a single command.
 
 ---
 
@@ -44,7 +44,7 @@ Run the initialization command in your competitive programming workspace:
 sd init
 ```
 This creates:
-- `.testcase/` (directory where testcases are stored)
+- `.testcase/` (directory where testcase are stored)
 - `shady.json` (configuration file)
 
 ### 3. Start the Local Server
@@ -83,8 +83,8 @@ The runner compiles your solution (if needed), executes it against all saved tes
 | **`sd status`** | — | Checks and shows the running status of the background server daemon. |
 | **`sd stop`**| — | Stops the background server daemon. |
 | **`sd logs`** | — | View and tail the log stream of the background server daemon. |
+| **`sd submit`** | `<solution-file>`<br>`[--compiler <string>]`<br>| | submit the solution code to the **codeforces**. Submit to latest fetch question (e.g., 2304D ) and if you want to change the question (e.g., 2304A) edit file `.testcase/.run-latest` |
 | **`sd clean`**| — | Stops the server and cleans up/deletes all downloaded testcase files. |
-
 ---
 
 ## Features

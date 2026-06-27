@@ -35,7 +35,8 @@
     "shady"
   ],
   "bin": {
-    "sd": "./dist/cli.js"
+    "sd": "./dist/cli.js",
+    "shady": "./dist/cli.js"
   },
   "files": [
     "dist"
