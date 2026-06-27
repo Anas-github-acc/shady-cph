@@ -12,7 +12,7 @@ const EXTENSION_COMPILER_MAP: Record<string, string> = {
   "js": "55"   // Node.js 15.8.0 (64bit)
 };
 
-function inferProgramTypeId(filename: string): string || undefined {
+function inferProgramTypeId(filename: string): string | undefined {
   const extension = filename.split(".").pop()?.toLowerCase() || "";
   return EXTENSION_COMPILER_MAP[extension] || undefined;
 }

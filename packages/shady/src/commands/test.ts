@@ -3,13 +3,14 @@ import fg from 'fast-glob';
 import fs from 'fs-extra';
 import { loadConfig, resolveTestcaseDir } from '../core/config.js';
 import { readRunLatest, readTestCases } from '../core/testcase.js';
-import { diffOutputs } from '../core/diff.js';
+import { diffOutputs, normalize } from '../core/diff.js';
 import { prepareSolutionRunner } from '../core/runner.js';
 import { logger, kleur } from '../utils/logger.js';
 
 export interface TestCommandOptions {
   problem?: string;
   platform?: string;
+  number?: boolean;
 }
 
 async function resolveTestcaseFile(testcaseDir: string, opts: TestCommandOptions): Promise<string> {
@@ -81,9 +82,18 @@ export async function testCommand(solutionFile: string, opts: TestCommandOptions
     const result = await run(tc.input);
     spinner.stop();
 
-    logger.plain(kleur.bold(`Test case ${i + 1}/${cases.length}`));
+    const { matched } = diffOutputs(tc.output, result.stdout);
+    if (matched) {
+      passed++;
+    }
+
+    const formattedInput = opts.number
+      ? tc.input.replace(/\r\n/g, '\n').split('\n').map((line, idx) => `${idx + 1}. ${line}`).join('\n')
+      : tc.input;
+
+    logger.plain(kleur.bold(`Test case ${i + 1}/${cases.length} ${matched ? kleur.green('PASSED') : kleur.red('FAILED')}`));
     logger.plain(kleur.dim('input:'));
-    logger.plain(indent(tc.input));
+    logger.plain(indent(formattedInput));
 
     if (result.spawnError) {
       logger.error(`Spawn error: ${result.spawnError}`);
@@ -97,16 +107,32 @@ export async function testCommand(solutionFile: string, opts: TestCommandOptions
       continue;
     }
 
-    const { matched, rendered } = diffOutputs(tc.output, result.stdout);
-
-    if (matched) {
-      passed++;
-      logger.success(kleur.green('PASSED'));
-    } else {
-      logger.error(kleur.red('FAILED'));
-      logger.plain(kleur.dim('diff (- expected / + actual):'));
-      logger.plain(indent(rendered.join('\n')));
+    const expLines = normalize(tc.output);
+    const actLines = normalize(result.stdout);
+    const expectedLinesToPrint: string[] = [];
+    for (let j = 0; j < expLines.length; j++) {
+      const e = expLines[j];
+      const a = actLines[j];
+      let lineText = e;
+      if (e !== a) {
+        lineText = kleur.red(`- ${e}`);
+      }
+      if (opts.number) {
+        expectedLinesToPrint.push(`${j + 1}. ${lineText}`);
+      } else {
+        expectedLinesToPrint.push(lineText);
+      }
     }
+
+    const formattedOutput = opts.number
+      ? result.stdout.replace(/\r\n/g, '\n').split('\n').map((line, idx) => `${idx + 1}. ${line}`).join('\n')
+      : result.stdout;
+
+    logger.plain(kleur.dim('expected:'));
+    logger.plain(indent(expectedLinesToPrint.join('\n')));
+
+    logger.plain(kleur.dim('your output:'));
+    logger.plain(indent(formattedOutput));
 
     if (result.exitCode !== 0) {
       logger.warn(`Process exited with code ${result.exitCode}`);

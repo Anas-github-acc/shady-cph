@@ -35,7 +35,7 @@ export function diffOutputs(expected: string, actual: string): LineDiffResult {
   return { matched, rendered };
 }
 
-function normalize(s: string): string[] {
+export function normalize(s: string): string[] {
   return s
     .replace(/\r\n/g, '\n')
     .split('\n')

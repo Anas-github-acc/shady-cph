@@ -84,6 +84,7 @@ program
   .argument('<solution>', 'Path to your solution file (e.g. ./solutions/1230A.cpp)')
   .option('--problem <number>', 'Run against a specific saved problem number instead of the latest received testcase')
   .option('--platform <platform>', 'Disambiguate platform when --problem matches multiple files')
+  .option('-n, --number', 'Prefix output lines with sequence numbers', false)
   .description('Run a solution against saved testcases and diff the output')
   .action(async (solution, opts) => {
     await testCommand(solution, opts);
