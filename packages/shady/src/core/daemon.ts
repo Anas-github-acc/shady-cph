@@ -62,21 +62,21 @@ const BodySchema = {
   },
 };
 
-export function parseProblemFromUrl(urlStr: string): { contest?: string; label?: string } | null {
+export function parseProblemFromUrl(urlStr: string): { contest?: string; problem?: string } | null {
   try {
     const url = new URL(urlStr);
     if (url.hostname.includes('codeforces.com')) {
       const match1 = url.pathname.match(/\/contest\/(\d+)\/problem\/([A-Za-z0-9]+)/);
-      if (match1) return { contest: match1[1], label: match1[2] };
+      if (match1) return { contest: match1[1], problem: match1[2] };
       const match2 = url.pathname.match(/\/problem\/(\d+)\/([A-Za-z0-9]+)/);
-      if (match2) return { contest: match2[1], label: match2[2] };
+      if (match2) return { contest: match2[1], problem: match2[2] };
     } else if (url.hostname.includes('atcoder.jp')) {
       const match = url.pathname.match(/\/contests\/([^/]+)\/tasks\/([^/]+)/);
       if (match) {
         const contest = match[1];
         const task = match[2];
-        const label = task.startsWith(contest + '_') ? task.slice(contest.length + 1) : task;
-        return { contest, label };
+        const problem = task.startsWith(contest + '_') ? task.slice(contest.length + 1) : task;
+        return { contest, problem };
       }
     }
   } catch (e) {}
@@ -115,33 +115,34 @@ export async function runDaemon(opts: { port?: number }) {
       try {
         const payload = PayloadSchema.parse(request.body);
 
-        let problemNumber = payload.problem_number;
-        if (!problemNumber) {
-          const contest = payload.contest_number ?? payload.contestId;
-          const label = payload.question_label ?? payload.problemIndex ?? payload.label;
-          if (contest !== undefined && label !== undefined) {
-            problemNumber = `${contest}${label}`;
+        let problemLabel = payload.label;
+        const problemNumber = payload.problem_number ?? payload.problemIndex;
+        const contestNumber = payload.contest_number ?? payload.contestId;
+
+        if (!problemLabel) {
+          if (problemNumber !== undefined && contestNumber !== undefined) {
+            problemLabel = `${contestNumber}${problemNumber}`;
           }
         }
-        if (!problemNumber && payload.question_url) {
+        if (!problemLabel && payload.question_url) {
           const parsed = parseProblemFromUrl(payload.question_url);
-          if (parsed && parsed.contest && parsed.label) {
-            problemNumber = `${parsed.contest}${parsed.label}`;
+          if (parsed && parsed.contest && parsed.problem) {
+            problemLabel = `${parsed.contest}${parsed.problem}`;
           }
         }
 
-        if (!problemNumber) {
+        if (!problemLabel) {
           return reply.status(400).send({
             ok: false,
             error: 'Missing problem identification (need problem_number or contest_number + question_label)',
           });
         }
 
-        console.log(`[${timestamp}] Processing incoming testcase for ${problemNumber} (${payload.platform})...`);
+        console.log(`[${timestamp}] Processing incoming testcase for ${problemLabel} (${payload.platform})...`);
 
         const filePath = testcaseFilePath(
           testcaseDir,
-          problemNumber,
+          problemLabel,
           payload.platform
         );
 
@@ -149,16 +150,16 @@ export async function runDaemon(opts: { port?: number }) {
 
         await writeRunLatest(
           testcaseDir,
-          testcaseFileName(problemNumber, payload.platform)
+          testcaseFileName(problemLabel, payload.platform)
         );
 
         console.log(
-          `[${new Date().toISOString()}] Saved testcase for ${problemNumber} (${payload.platform}) — ${totalCases} case(s) total`
+          `[${new Date().toISOString()}] Saved testcase for ${problemLabel} (${payload.platform}) — ${totalCases} case(s) total`
         );
 
         return reply.send({
           ok: true,
-          file: testcaseFileName(problemNumber, payload.platform),
+          file: testcaseFileName(problemLabel, payload.platform),
           totalCases,
         });
       } catch (err) {
