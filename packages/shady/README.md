@@ -63,11 +63,11 @@ See the [package source]() for more details.
 | :--- | :--- | :--- |
 | **`sd init`** | `[-y, --yes]` | Initializes `shady.json` and `.testcase/` directory. Use `-y` or `--yes` to skip interactive configuration prompts. |
 | **`sd run`** | `[-p, --port <port>]` | Starts the local HTTP server in the background (as a daemon) to listen for testcase inputs. Port defaults to `42585`. |
-| **`sd test`** | `<solution-file>`<br>`[--problem <number>]`<br>`[--platform <platform>]` | Compiles (if needed) and executes the specified solution file against testcases. Option `--problem` runs a specific problem's testcases, and `--platform` disambiguates when multiple matches exist. |
+| **`sd test <solution-file>`** | `[--problem <number>]`<br>`[--platform <platform>]` | Compiles (if needed) and executes the specified solution file against testcases. Option `--problem` runs a specific problem's testcases, and `--platform` disambiguates when multiple matches exist. |
 | **`sd status`** | — | Checks and shows the running status of the background server daemon. |
 | **`sd stop`**| — | Stops the background server daemon. |
 | **`sd logs`** | — | View and tail the log stream of the background server daemon. |
-| **`sd submit`** | `<solution-file>`<br>`[--compiler <string>]`<br>| | submit the solution code to the **codeforces**. Submit to latest fetch question (e.g., 2304D ) and if you want to change the question (e.g., 2304A) edit file `.testcase/.run-latest` |
+| **`sd submit <solution-file>`** | `[--compiler <string>]`<br>| | submit the solution code to the **codeforces**. Submit to latest fetch question (e.g., 2304D ) and if you want to change the question (e.g., 2304A) edit file `.testcase/.run-latest` |
 | **`sd clean`**| — | Stops the server and cleans up/deletes all downloaded testcase files. |
 
 ## Support
