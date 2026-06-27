@@ -10,7 +10,8 @@ export const CONFIG_FILENAME = 'shady.json';
 // {dir} = scratch build dir, {name} = solution filename without extension.
 const LanguageSchema = z.object({
   compile: z.string().optional(),
-  run: z.string()
+  run: z.string(),
+  submissionCompiler: z.string().optional()
 });
 
 export const ConfigSchema = z.object({
@@ -31,26 +32,44 @@ export const ConfigSchema = z.object({
   languages: z.record(z.string(), LanguageSchema).default({
     cpp: {
       compile: 'g++ -O2 -std=c++17 -o {dir}/{name} {file}',
-      run: '{dir}/{name}'
+      run: '{dir}/{name}',
+      submissionCompiler: '54'
     },
     cc: {
       compile: 'g++ -O2 -std=c++17 -o {dir}/{name} {file}',
-      run: '{dir}/{name}'
+      run: '{dir}/{name}',
+      submissionCompiler: '89'
     },
-    py: { run: 'python3 {file}' },
-    js: { run: 'node {file}' },
-    ts: { run: 'npx tsx {file}' },
+    c: {
+      compile: 'gcc -O2 -std=c11 -o {dir}/{name} {file}',
+      run: '{dir}/{name}',
+      submissionCompiler: '43'
+    },
+    py: {
+      run: 'python3 {file}',
+      submissionCompiler: '31'
+    },
+    js: {
+      run: 'node {file}',
+      submissionCompiler: '55'
+    },
+    ts: {
+      run: 'npx tsx {file}'
+    },
     java: {
       compile: 'javac -d {dir} {file}',
-      run: 'java -cp {dir} {name}'
+      run: 'java -cp {dir} {name}',
+      submissionCompiler: '87'
     },
     go: {
       compile: 'go build -o {dir}/{name} {file}',
-      run: '{dir}/{name}'
+      run: '{dir}/{name}',
+      submissionCompiler: '32'
     },
     rs: {
       compile: 'rustc -O -o {dir}/{name} {file}',
-      run: '{dir}/{name}'
+      run: '{dir}/{name}',
+      submissionCompiler: '75'
     }
   }),
 

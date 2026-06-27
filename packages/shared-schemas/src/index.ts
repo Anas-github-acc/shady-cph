@@ -19,4 +19,15 @@ export const PayloadSchema = z.object({
   }),
 });
 
+export const SubmissionSchema = z.object({
+  sourceCode: z.string(),
+  filename: z.string(),
+  // Optional language code override (e.g., "54" for G++17)
+  programTypeId: z.string().optional(),
+  language: z.string(),
+});
+
+export type CPSubmission = z.infer<typeof SubmissionSchema>;
 export type CPPayload = z.infer<typeof PayloadSchema>;
+
+

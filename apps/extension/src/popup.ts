@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         consoleOnly: consoleCheckbox.checked,
       },
       () => {
-        saveButton.innerText = "Saved! 🎉";
+        saveButton.innerText = "Saved!";
         setTimeout(() => { saveButton.innerText = "Save Settings"; }, 1500);
       }
     );

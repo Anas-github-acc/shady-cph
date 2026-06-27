@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import websocketPlugin from '@fastify/websocket';
 import { z } from 'zod';
 import fs from 'fs-extra';
 import path from 'node:path';
@@ -12,6 +13,14 @@ import {
 } from './testcase.js';
 import { getDaemonPaths } from './daemonPaths.js';
 import { PayloadSchema } from "@repo/shared-schemas";
+
+export const SubmissionSchema = z.object({
+  sourceCode: z.string(),
+  filename: z.string(),
+  programTypeId: z.string().optional(),
+  language: z.string(),
+});
+
 
 // const PayloadSchema = z.object({
 //   parser: z.object({
@@ -88,9 +97,8 @@ export async function runDaemon(opts: { port?: number }) {
   const port = opts.port ?? config.server.port;
   const testcaseDir = resolveTestcaseDir(config);
 
-  const app = Fastify({
-    logger: false,
-  });
+  const app = Fastify({ logger: false });
+
 
   await app.register(cors, {
     origin: true,
@@ -173,6 +181,43 @@ export async function runDaemon(opts: { port?: number }) {
       }
     }
   );
+
+  // Register Websocket
+  await app.register(websocketPlugin)
+
+  let connectedSockets: any[] = [];
+
+  // 3. Ultra lightweight real-time stream endpoint
+  app.get('/stream', { websocket: true }, (connection, req) => {
+    connectedSockets.push(connection.socket);
+    console.log(`[${new Date().toISOString()}] Browser extension established a live socket stream.`);
+
+    connection.socket.on('close', () => {
+      connectedSockets = connectedSockets.filter(s => s !== connection.socket);
+      console.log(`[${new Date().toISOString()}] Browser extension closed socket stream.`);
+    });
+  });
+
+  app.post('/submit', async (request, reply) => {
+    try {
+      const submission = SubmissionSchema.parse(request.body);
+
+      if (connectedSockets.length === 0) {
+        return reply.status(503).send({ ok: false, error: 'No active browser tab connected' });
+      }
+
+      const payload = JSON.stringify({ type: 'SHADY_SUBMIT', data: submission });
+      connectedSockets.forEach(socket => {
+        if (socket.readyState === 1) { // 1 === WebSocket.OPEN
+          socket.send(payload);
+        }
+      });
+
+      return reply.send({ ok: true, status: 'relayed_to_browser' });
+    } catch (err: any) {
+      return reply.status(400).send({ ok: false, error: err.message });
+    }
+  });
 
   const paths = getDaemonPaths();
   const cleanup = () => {

@@ -7,6 +7,10 @@ export const manifest: DefineManifestOptions = {
   version: "1.2.0",
   description: "Parses and sends CP testcases to localhost or logs to console.",
   permissions: ["storage"],
+  background: {
+    service_worker: "src/background.ts",
+    type: "module"
+  },
   action: {
     default_popup: "src/popup.html"
   },

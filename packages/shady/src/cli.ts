@@ -7,6 +7,7 @@ import { statusCommand } from './commands/status.js';
 import { stopCommand } from './commands/stop.js';
 import { logsCommand } from './commands/logs.js';
 import { cleanCommand } from './commands/clean.js';
+import { submitCommand } from './commands/submit.js';
 import { getCliVersion } from './core/version.js';
 import { logger } from './utils/logger.js';
 
@@ -67,6 +68,15 @@ program
   .description('Stop server and clean all testcase files')
   .action(async () => {
     await cleanCommand();
+  });
+
+program
+  .command('submit')
+  .argument('<solution>', 'Path to your solution file (e.g. ./solutions/1230A.cpp)')
+  .option('-c, --compiler <compiler_id>', 'Optional compiler/programTypeID override (e.g. "54" for G++17)')
+  .description('Submit your solution code to the browser extension')
+  .action(async (solution, opts) => {
+    await submitCommand(solution, opts);
   });
 
 program
