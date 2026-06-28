@@ -5,7 +5,8 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
-    "lint": "turbo lint"
+    "lint": "turbo lint",
+    "link": "cd packages/shady/ && npm link"
   },
   "devDependencies": {
     "turbo": "^2.0.0"

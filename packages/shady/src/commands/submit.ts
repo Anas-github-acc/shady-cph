@@ -114,7 +114,7 @@ export async function submitCommand(solutionFile: string, opts: SubmitOptions) {
     });
 
     if (result.ok) {
-      logger.success('Submission relayed to browser extension successfully!');
+      logger.success('Submission request sended successfully!\nNote: Your codeforces Contest Question should be open in the background to make it work');
     } else {
       logger.error(`Submission failed: ${result.error}`);
       process.exitCode = 1;

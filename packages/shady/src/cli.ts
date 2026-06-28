@@ -2,6 +2,8 @@ import { Command } from 'commander';
 import { initCommand } from './core/init.js';
 import { runCommand } from './commands/run.js';
 import { testCommand } from './commands/test.js';
+import { checkCommand } from './commands/check.js';
+import { viewCommand } from './commands/view.js';
 import { runDaemon } from './core/daemon.js';
 import { statusCommand } from './commands/status.js';
 import { stopCommand } from './commands/stop.js';
@@ -88,6 +90,14 @@ program
   .description('Run a solution against saved testcases and diff the output')
   .action(async (solution, opts) => {
     await testCommand(solution, opts);
+  });
+
+program
+  .command('view')
+  .option('-a, --all', 'Print all saved testcases', false)
+  .description('Print the latest testcase, or all saved testcases with their contents')
+  .action(async (opts) => {
+    await viewCommand(opts);
   });
 
 program.parseAsync(process.argv).catch((err) => {

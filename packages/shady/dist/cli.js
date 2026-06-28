@@ -510,12 +510,82 @@ function indent(text) {
   return text.split("\n").map((l) => `  ${l}`).join("\n");
 }
 
+// src/commands/view.ts
+import fs8 from "fs-extra";
+import path8 from "path";
+import fg2 from "fast-glob";
+async function viewCommand(opts) {
+  const config = await loadConfig();
+  const testcaseDir = resolveTestcaseDir(config);
+  if (!await fs8.pathExists(testcaseDir)) {
+    logger.error(`Testcase directory does not exist: ${testcaseDir}`);
+    process.exitCode = 1;
+    return;
+  }
+  let testcaseFiles = [];
+  if (opts.all) {
+    testcaseFiles = await fg2("*.test", { cwd: testcaseDir, absolute: true });
+    if (testcaseFiles.length === 0) {
+      logger.error(`No testcase files found in ${testcaseDir}`);
+      process.exitCode = 1;
+      return;
+    }
+    testcaseFiles.sort();
+  } else {
+    const latest = await readRunLatest(testcaseDir);
+    if (!latest) {
+      logger.error(
+        'No latest testcase found. Run "sd run" and send a testcase first, or use --all / -a.'
+      );
+      process.exitCode = 1;
+      return;
+    }
+    const targetFile = path8.join(testcaseDir, latest);
+    if (!await fs8.pathExists(targetFile)) {
+      logger.error(`Latest testcase file not found: ${latest}`);
+      process.exitCode = 1;
+      return;
+    }
+    testcaseFiles = [targetFile];
+  }
+  for (let i = 0; i < testcaseFiles.length; i++) {
+    const file = testcaseFiles[i];
+    const fileName = path8.basename(file);
+    const relativePath = path8.relative(process.cwd(), file);
+    logger.plain(kleur.bold().cyan(`\u250C\u2500\u2500 ${fileName} (${relativePath})`));
+    try {
+      const content = await fs8.readFile(file, "utf-8");
+      const lines = content.split("\n");
+      if (lines.length > 0 && lines[lines.length - 1] === "") {
+        lines.pop();
+      }
+      for (const line of lines) {
+        if (line === "INPUT") {
+          logger.plain(kleur.bold().blue("\u2502 INPUT"));
+        } else if (line === "OUTPUT") {
+          logger.plain(kleur.bold().green("\u2502 OUTPUT"));
+        } else if (line.trim() === "@@@ CASE @@@") {
+          logger.plain(kleur.yellow("\u251C\u2500 @@@ CASE @@@"));
+        } else {
+          logger.plain(`\u2502 ${kleur.dim(line)}`);
+        }
+      }
+    } catch (err) {
+      logger.error(`Failed to read ${fileName}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    logger.plain(kleur.bold().cyan("\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"));
+    if (i < testcaseFiles.length - 1) {
+      logger.plain("");
+    }
+  }
+}
+
 // src/core/daemon.ts
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import websocketPlugin from "@fastify/websocket";
 import { z as z2 } from "zod";
-import fs8 from "fs-extra";
+import fs9 from "fs-extra";
 import { PayloadSchema } from "@repo/shared-schemas";
 var SubmissionSchema = z2.object({
   sourceCode: z2.string(),
@@ -578,6 +648,28 @@ async function runDaemon(opts) {
   const port = opts.port ?? config.server.port;
   const testcaseDir = resolveTestcaseDir(config);
   const app = Fastify({ logger: false });
+  let inactivityTimeout = null;
+  const INACTIVITY_LIMIT_MS = 30 * 60 * 1e3;
+  const resetInactivityTimer = () => {
+    if (inactivityTimeout) {
+      clearTimeout(inactivityTimeout);
+    }
+    inactivityTimeout = setTimeout(async () => {
+      console.log(`[${(/* @__PURE__ */ new Date()).toISOString()}] No requests received for 30 minutes. Automatically shutting down...`);
+      try {
+        await app.close();
+      } catch (e) {
+      }
+      cleanup();
+      process.exit(0);
+    }, INACTIVITY_LIMIT_MS);
+  };
+  resetInactivityTimer();
+  app.addHook("onRequest", async (request, reply) => {
+    if (request.url !== "/health") {
+      resetInactivityTimer();
+    }
+  });
   await app.register(cors, {
     origin: true,
     methods: ["POST"]
@@ -654,6 +746,7 @@ async function runDaemon(opts) {
     }
     connectedSockets.push(socket);
     console.log(`[${(/* @__PURE__ */ new Date()).toISOString()}] Browser extension established a live socket stream.`);
+    resetInactivityTimer();
     socket.on("close", (code, reason) => {
       connectedSockets = connectedSockets.filter((s) => s !== socket);
     });
@@ -665,8 +758,11 @@ async function runDaemon(opts) {
         const parsed = JSON.parse(message.toString());
         if (parsed.type === "PING") {
           socket.send(JSON.stringify({ type: "PONG" }));
+        } else {
+          resetInactivityTimer();
         }
       } catch (e) {
+        resetInactivityTimer();
       }
     });
   });
@@ -700,19 +796,19 @@ async function runDaemon(opts) {
   const paths = getDaemonPaths();
   const cleanup = () => {
     try {
-      if (fs8.existsSync(paths.pid)) {
-        const pidStr = fs8.readFileSync(paths.pid, "utf-8");
+      if (fs9.existsSync(paths.pid)) {
+        const pidStr = fs9.readFileSync(paths.pid, "utf-8");
         if (parseInt(pidStr.trim(), 10) === process.pid) {
-          fs8.unlinkSync(paths.pid);
+          fs9.unlinkSync(paths.pid);
         }
       }
     } catch (e) {
     }
     try {
-      if (fs8.existsSync(paths.json)) {
-        const data = fs8.readJsonSync(paths.json);
+      if (fs9.existsSync(paths.json)) {
+        const data = fs9.readJsonSync(paths.json);
         if (data.pid === process.pid) {
-          fs8.unlinkSync(paths.json);
+          fs9.unlinkSync(paths.json);
         }
       }
     } catch (e) {
@@ -751,7 +847,7 @@ async function runDaemon(opts) {
 }
 
 // src/commands/status.ts
-import fs9 from "fs-extra";
+import fs10 from "fs-extra";
 import http from "http";
 function checkHealth(port) {
   return new Promise((resolve) => {
@@ -773,13 +869,13 @@ function checkHealth(port) {
 }
 async function statusCommand() {
   const paths = getDaemonPaths();
-  if (!await fs9.pathExists(paths.json)) {
+  if (!await fs10.pathExists(paths.json)) {
     logger.info("Server is not running.");
     return;
   }
   let serverData;
   try {
-    serverData = await fs9.readJson(paths.json);
+    serverData = await fs10.readJson(paths.json);
   } catch (err) {
     logger.error("Failed to read server.json configuration.");
     return;
@@ -798,20 +894,20 @@ async function statusCommand() {
 }
 
 // src/commands/stop.ts
-import fs10 from "fs-extra";
+import fs11 from "fs-extra";
 async function stopCommand() {
   const paths = getDaemonPaths();
-  if (!await fs10.pathExists(paths.pid)) {
+  if (!await fs11.pathExists(paths.pid)) {
     logger.info("Server is not running.");
-    if (await fs10.pathExists(paths.json)) {
-      await fs10.remove(paths.json).catch(() => {
+    if (await fs11.pathExists(paths.json)) {
+      await fs11.remove(paths.json).catch(() => {
       });
     }
     return;
   }
   let pid;
   try {
-    const pidStr = await fs10.readFile(paths.pid, "utf-8");
+    const pidStr = await fs11.readFile(paths.pid, "utf-8");
     pid = parseInt(pidStr.trim(), 10);
   } catch (err) {
     logger.error("Failed to read server.pid.");
@@ -819,9 +915,9 @@ async function stopCommand() {
   }
   if (isNaN(pid) || !isProcessRunning(pid)) {
     logger.warn("Server is not running, but stale files were found. Cleaning up...");
-    await fs10.remove(paths.pid).catch(() => {
+    await fs11.remove(paths.pid).catch(() => {
     });
-    await fs10.remove(paths.json).catch(() => {
+    await fs11.remove(paths.json).catch(() => {
     });
     return;
   }
@@ -855,9 +951,9 @@ async function stopCommand() {
       logger.error(`Failed to send SIGKILL: ${err.message}`);
     }
   }
-  await fs10.remove(paths.pid).catch(() => {
+  await fs11.remove(paths.pid).catch(() => {
   });
-  await fs10.remove(paths.json).catch(() => {
+  await fs11.remove(paths.json).catch(() => {
   });
   if (exited) {
     logger.success("Server stopped.");
@@ -867,25 +963,25 @@ async function stopCommand() {
 }
 
 // src/commands/logs.ts
-import fs11 from "fs-extra";
+import fs12 from "fs-extra";
 async function logsCommand() {
   const paths = getDaemonPaths();
-  if (!await fs11.pathExists(paths.log)) {
+  if (!await fs12.pathExists(paths.log)) {
     console.log(`No log file found at ${paths.log}. Is the server running?`);
     return;
   }
-  const initialContent = await fs11.readFile(paths.log, "utf-8");
+  const initialContent = await fs12.readFile(paths.log, "utf-8");
   process.stdout.write(initialContent);
-  let position = (await fs11.stat(paths.log)).size;
-  const fd = await fs11.open(paths.log, "r");
-  const watcher = fs11.watch(paths.log, async (event) => {
+  let position = (await fs12.stat(paths.log)).size;
+  const fd = await fs12.open(paths.log, "r");
+  const watcher = fs12.watch(paths.log, async (event) => {
     if (event === "change") {
       try {
-        const stats = await fs11.stat(paths.log);
+        const stats = await fs12.stat(paths.log);
         if (stats.size > position) {
           const length = stats.size - position;
           const buffer = Buffer.alloc(length);
-          await fs11.read(fd, buffer, 0, length, position);
+          await fs12.read(fd, buffer, 0, length, position);
           process.stdout.write(buffer.toString("utf-8"));
           position = stats.size;
         } else if (stats.size < position) {
@@ -897,27 +993,27 @@ async function logsCommand() {
   });
   process.on("SIGINT", () => {
     watcher.close();
-    fs11.close(fd).catch(() => {
+    fs12.close(fd).catch(() => {
     });
     process.exit(0);
   });
   process.on("SIGTERM", () => {
     watcher.close();
-    fs11.close(fd).catch(() => {
+    fs12.close(fd).catch(() => {
     });
     process.exit(0);
   });
 }
 
 // src/commands/clean.ts
-import fs12 from "fs-extra";
+import fs13 from "fs-extra";
 async function cleanCommand() {
   logger.info("Stopping server before cleaning...");
   await stopCommand();
   const config = await loadConfig();
   const testcaseDir = resolveTestcaseDir(config);
-  if (await fs12.pathExists(testcaseDir)) {
-    await fs12.emptyDir(testcaseDir);
+  if (await fs13.pathExists(testcaseDir)) {
+    await fs13.emptyDir(testcaseDir);
     logger.success(`Cleaned all testcase files from ${testcaseDir}.`);
   } else {
     logger.info(`Testcase directory ${testcaseDir} does not exist.`);
@@ -925,8 +1021,8 @@ async function cleanCommand() {
 }
 
 // src/commands/submit.ts
-import fs13 from "fs-extra";
-import path8 from "path";
+import fs14 from "fs-extra";
+import path9 from "path";
 import http2 from "http";
 function postSubmission(port, payload) {
   return new Promise((resolve, reject) => {
@@ -971,13 +1067,13 @@ function postSubmission(port, payload) {
 async function submitCommand(solutionFile, opts) {
   const config = await loadConfig();
   const testcaseDir = resolveTestcaseDir(config);
-  const resolvedSolution = path8.resolve(process.cwd(), solutionFile);
-  if (!await fs13.pathExists(resolvedSolution)) {
+  const resolvedSolution = path9.resolve(process.cwd(), solutionFile);
+  if (!await fs14.pathExists(resolvedSolution)) {
     logger.error(`Solution file not found: ${resolvedSolution}`);
     process.exitCode = 1;
     return;
   }
-  const ext = path8.extname(resolvedSolution).replace(".", "");
+  const ext = path9.extname(resolvedSolution).replace(".", "");
   const langConfig = config.languages[ext];
   const programTypeId = opts.compiler ?? langConfig?.submissionCompiler;
   let problemNumber;
@@ -996,23 +1092,23 @@ async function submitCommand(solutionFile, opts) {
     return;
   }
   const filename = `${problemNumber}.${ext}`;
-  const sourceCode = await fs13.readFile(resolvedSolution, "utf-8");
+  const sourceCode = await fs14.readFile(resolvedSolution, "utf-8");
   const paths = getDaemonPaths();
-  if (!await fs13.pathExists(paths.json)) {
+  if (!await fs14.pathExists(paths.json)) {
     logger.error('Server is not running. Start the server first with "sd run".');
     process.exitCode = 1;
     return;
   }
   let serverData;
   try {
-    serverData = await fs13.readJson(paths.json);
+    serverData = await fs14.readJson(paths.json);
   } catch (err) {
     logger.error("Failed to read server status.");
     process.exitCode = 1;
     return;
   }
   const port = serverData.port;
-  logger.info(`Submitting ${path8.basename(resolvedSolution)} for question ${problemNumber}...`);
+  logger.info(`Submitting ${path9.basename(resolvedSolution)} for question ${problemNumber}...`);
   try {
     const result = await postSubmission(port, {
       sourceCode,
@@ -1021,7 +1117,7 @@ async function submitCommand(solutionFile, opts) {
       language: ext
     });
     if (result.ok) {
-      logger.success("Submission relayed to browser extension successfully!");
+      logger.success("Submission request sended successfully!\nNote: Your codeforces Contest Question should be open in the background to make it work");
     } else {
       logger.error(`Submission failed: ${result.error}`);
       process.exitCode = 1;
@@ -1061,6 +1157,9 @@ program.command("submit").argument("<solution>", "Path to your solution file (e.
 });
 program.command("test").argument("<solution>", "Path to your solution file (e.g. ./solutions/1230A.cpp)").option("--problem <number>", "Run against a specific saved problem number instead of the latest received testcase").option("--platform <platform>", "Disambiguate platform when --problem matches multiple files").option("-n, --number", "Prefix output lines with sequence numbers", false).description("Run a solution against saved testcases and diff the output").action(async (solution, opts) => {
   await testCommand(solution, opts);
+});
+program.command("view").option("-a, --all", "Print all saved testcases", false).description("Print the latest testcase, or all saved testcases with their contents").action(async (opts) => {
+  await viewCommand(opts);
 });
 program.parseAsync(process.argv).catch((err) => {
   logger.error(err instanceof Error ? err.message : String(err));

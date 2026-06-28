@@ -99,6 +99,32 @@ export async function runDaemon(opts: { port?: number }) {
 
   const app = Fastify({ logger: false });
 
+  let inactivityTimeout: NodeJS.Timeout | null = null;
+  const INACTIVITY_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
+
+  const resetInactivityTimer = () => {
+    if (inactivityTimeout) {
+      clearTimeout(inactivityTimeout);
+    }
+    inactivityTimeout = setTimeout(async () => {
+      console.log(`[${new Date().toISOString()}] No requests received for 30 minutes. Automatically shutting down...`);
+      try {
+        await app.close();
+      } catch (e) {}
+      cleanup();
+      process.exit(0);
+    }, INACTIVITY_LIMIT_MS);
+  };
+
+  // Start the timer immediately on startup
+  resetInactivityTimer();
+
+  // Reset the timer on any HTTP request except health checks
+  app.addHook('onRequest', async (request, reply) => {
+    if (request.url !== '/health') {
+      resetInactivityTimer();
+    }
+  });
 
   await app.register(cors, {
     origin: true,
@@ -195,6 +221,7 @@ export async function runDaemon(opts: { port?: number }) {
 
     connectedSockets.push(socket);
     console.log(`[${new Date().toISOString()}] Browser extension established a live socket stream.`);
+    resetInactivityTimer();
 
     socket.on('close', (code: number, reason: string) => {
       connectedSockets = connectedSockets.filter(s => s !== socket);
@@ -210,9 +237,11 @@ export async function runDaemon(opts: { port?: number }) {
         const parsed = JSON.parse(message.toString());
         if (parsed.type === 'PING') {
           socket.send(JSON.stringify({ type: 'PONG' }));
+        } else {
+          resetInactivityTimer();
         }
       } catch (e) {
-        // Ignore non-JSON/unsupported messages
+        resetInactivityTimer();
       }
     });
   });
