@@ -21,7 +21,7 @@ program
 program
   .command('release')
   .description('Consume changesets, bump versions, build, sync, tag, and publish to npm/GitHub')
-  .option('-sr, --skip-release', 'Skip Npm relase by passing --skip-release')
+  .option('--sr, --skip-release', 'Skip Npm relase by passing --skip-release')
   .action((options) => {
     runReleaseCommand(options['skip-release']);
   });
