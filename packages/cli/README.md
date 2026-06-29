@@ -1,4 +1,4 @@
-# Shady-cph v1.0.1
+# Shady-cph v1.0.3
 
 The **Shady-cph** is a CLI tool for Competitive Programming Helper (CPH) 
 
@@ -60,7 +60,7 @@ sd submit solution.cpp
 ```
 
 
-See the [package source](https://github.com/Anas-github-acc/shady-cph/tree/1.0.1-npm) for more details.
+See the [package source](https://github.com/Anas-github-acc/shady-cph/tree/1.0.3-npm) for more details.
 
 <!-- **Note:**<br> -->
 

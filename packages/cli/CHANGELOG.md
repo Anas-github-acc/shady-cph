@@ -1,5 +1,11 @@
 # shady-cph
 
+## 1.0.3
+
+### Patch Changes
+
+- update docs
+
 ## 1.0.1
 
 ### Patch Changes

@@ -25,6 +25,7 @@ export function runReleaseCommand(skipRelease: boolean = false): void {
   
   let calculatedVersion: string | null = null;
   let hasCreatedLocalTag = false;
+  let rollbackNeeded = false;
 
   try {
     logger.step(1, steps.length, steps[0]);
@@ -72,9 +73,11 @@ export function runReleaseCommand(skipRelease: boolean = false): void {
     git(['tag', '-a', tagName, '-m', `Release ${tagName}`], worktreePath);
     hasCreatedLocalTag = true;
     logger.success(`Local tag ${tagName} generated successfully.`);
-
+    
     logger.step(6, steps.length, steps[5]);
-    if (skipRelease) {
+    rollbackNeeded = true;
+
+    if (!skipRelease) {
       runNpmPublish(worktreePath);
       logger.success('Package deployed to global npm registry successfully.');
     } else {
@@ -89,8 +92,15 @@ export function runReleaseCommand(skipRelease: boolean = false): void {
 
     logger.info('Syncing monorepo parent changelogs and version definitions to main...');
     git(['add', '.'], CONFIG.repoRoot);
-    git(['commit', '-m', `chore: version bump ${tagName} [skip ci]`], CONFIG.repoRoot);
-    git(['push'], CONFIG.repoRoot);
+
+    try {
+      git(['diff', '--cached', '--quiet'], CONFIG.repoRoot);
+      console.log('No changes to commit. Skipping commit.');
+    } catch {
+      git(['commit', '-m', `chore: version bump ${tagName} [skip ci]`], CONFIG.repoRoot);
+      git(['push'], CONFIG.repoRoot);
+    }
+
 
     logger.step(8, steps.length, steps[7]);
     createGitHubRelease(calculatedVersion, `Successfully published ${tagName}`);
@@ -99,26 +109,28 @@ export function runReleaseCommand(skipRelease: boolean = false): void {
   } catch (error) {
     logger.error('Release workflow failed. Initiating automated repository rollback...', error);
     
-    try {
-      if (hasCreatedLocalTag && calculatedVersion) {
-        const tagName = `${calculatedVersion}-${CONFIG.packageManager}`;
-        logger.warn(`Rolling back local tag reference: ${tagName}`);
-        try {
-          git(['tag', '-d', tagName], CONFIG.repoRoot);
-        } catch {}
-        if (worktreePath) {
+    if (rollbackNeeded) {
+      try {
+        if (hasCreatedLocalTag && calculatedVersion) {
+          const tagName = `${calculatedVersion}-${CONFIG.packageManager}`;
+          logger.warn(`Rolling back local tag reference: ${tagName}`);
           try {
-            git(['tag', '-d', tagName], worktreePath);
+            git(['tag', '-d', tagName], CONFIG.repoRoot);
           } catch {}
+          if (worktreePath) {
+            try {
+              git(['tag', '-d', tagName], worktreePath);
+            } catch {}
+          }
         }
-      }
 
-      logger.warn('Executing Git tree hard reset to restore uncommitted version changesets...');
-      git(['reset', '--hard', 'HEAD'], CONFIG.repoRoot);
-      
-      logger.success('Repository state successfully rolled back to a safe pre-release baseline.');
-    } catch (rollbackError) {
-      logger.error('Critical failure: Could not execute automated state recovery.', rollbackError);
+        logger.warn('Executing Git tree hard reset to restore uncommitted version changesets...');
+        git(['reset', '--hard', 'HEAD'], CONFIG.repoRoot);
+
+        logger.success('Repository state successfully rolled back to a safe pre-release baseline.');
+      } catch (rollbackError) {
+        logger.error('Critical failure: Could not execute automated state recovery.', rollbackError);
+      }
     }
 
     process.exit(1);
