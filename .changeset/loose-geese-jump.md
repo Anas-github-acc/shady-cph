@@ -1,5 +1,5 @@
 ---
-"shady": patch
+"shady-cph": patch
 ---
 
 add License
