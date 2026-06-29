@@ -22,7 +22,7 @@ export function git(args: string[], cwd = process.cwd()) {
 }
 
 export function isGitClean(): boolean {
-  const { stdout } = git(['status', '--porcelain']);
+  const stdout = git(['status', '--porcelain']);
   return stdout.length === 0;
 }
 
