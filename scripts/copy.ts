@@ -29,15 +29,24 @@ export function clearWorktree(worktreeDir: string): void {
 
 /**
  * Copies compiled assets directly into the root of the worktree folder
+ * Strictly ignores structural monorepo folders if they appear in the source path.
  */
 export function syncDirectories(srcDir: string, destDir: string): void {
   if (!fs.existsSync(srcDir)) {
     throw new Error(`Source distribution directory does not exist: ${srcDir}`);
   }
 
+  // Folders we absolutely block from leaking into the distribution branch root
+  const forbiddenDirs = ['apps', 'packages', 'node_modules', '.turbo'];
+
   const items = fs.readdirSync(srcDir, { withFileTypes: true });
 
   for (const item of items) {
+    // Defensive check: skip forbidden directories entirely
+    if (item.isDirectory() && forbiddenDirs.includes(item.name)) {
+      continue;
+    }
+
     const srcPath = path.join(srcDir, item.name);
     const destPath = path.join(destDir, item.name);
 
@@ -78,3 +87,4 @@ export function copyPackageMetadata(worktreeDir: string): void {
     }
   }
 }
+

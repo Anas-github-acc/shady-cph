@@ -37,7 +37,7 @@ importers:
         specifier: ^5.2.0
         version: 5.4.21(@types/node@26.0.1)
 
-  packages/shady:
+  packages/cli:
     dependencies:
       '@fastify/cors':
         specifier: ^11.2.0
