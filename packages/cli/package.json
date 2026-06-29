@@ -1,6 +1,6 @@
 {
   "name": "shady-cph",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "A competitive-programming-helper (cph) runner CLI: receives testcases from a browser extension (shady-cph-parser) and runs your solution against them.",
   "type": "module",
   "publishConfig": {

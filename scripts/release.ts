@@ -4,11 +4,11 @@ import { CONFIG } from './config.js';
 import { git, isGitClean } from './git.js';
 import { logger } from './logger.js';
 import { setupReleaseWorktree, cleanupReleaseWorktree } from './worktree.js';
-import { syncDirectories } from './copy.js';
+import { syncDirectories, copyPackageMetadata } from './copy.js';
 import { getPackageManifest, writeReleaseManifest } from './version.js';
 import { runNpmPublish, createGitHubRelease } from './publish.js';
 
-export function runReleaseCommand(startStep?: number): void {
+export function runReleaseCommand(): void {
   const steps = [
     'Verifying clean git status',
     'Processing Changesets (version bump & changelog)',
@@ -22,86 +22,101 @@ export function runReleaseCommand(startStep?: number): void {
 
   logger.info('Starting production release workflow...');
   let worktreePath: string | null = null;
-  const targetStep = startStep || 1;
+  
+  let calculatedVersion: string | null = null;
+  let hasCreatedLocalTag = false;
 
   try {
-    if (targetStep <= 1) {
-      logger.step(1, steps.length, steps[0]);
-      if (!isGitClean()) {
-        throw new Error('Working directory contains uncommitted changes. Please stash or commit first.');
-      }
+    logger.step(1, steps.length, steps[0]);
+    if (!isGitClean()) {
+      throw new Error('Working directory contains uncommitted changes. Please stash or commit first.');
     }
 
-    if (targetStep <= 2) {
-      logger.step(2, steps.length, steps[1]);
-      logger.info('Consuming markdown logs and generating version increments...');
-      execFileSync('pnpm', ['changeset', 'version'], {
-        cwd: CONFIG.repoRoot,
-        stdio: 'inherit'
-      });
+    logger.step(2, steps.length, steps[1]);
+    logger.info('Consuming markdown logs and generating version increments...');
+    execFileSync('pnpm', ['changeset', 'version'], {
+      cwd: CONFIG.repoRoot,
+      stdio: 'inherit'
+    });
 
-      const updatedManifest = getPackageManifest(CONFIG.cliPackagePath);
-      const newVersion = updatedManifest.version;
-      logger.info(`Target release version calculated: v${newVersion}`);
+    const updatedManifest = getPackageManifest(CONFIG.cliPackagePath);
+    calculatedVersion = updatedManifest.version;
+    const tagName = `v${calculatedVersion}`;
+    logger.info(`Target release version calculated: ${tagName}`);
+
+    logger.step(3, steps.length, steps[2]);
+    execFileSync('pnpm', ['--filter', `${CONFIG.cliPackageName}`, 'build'], {
+      cwd: CONFIG.repoRoot,
+      stdio: 'inherit'
+    });
+
+    logger.step(4, steps.length, steps[3]);
+    worktreePath = setupReleaseWorktree();
+
+    syncDirectories(CONFIG.distPath, worktreePath);
+    copyPackageMetadata(worktreePath);
+    writeReleaseManifest(worktreePath, CONFIG.cliPackagePath);
+
+    git(['add', '.'], worktreePath);
+    
+    const status = git(['status', '--porcelain'], worktreePath);
+    if (status.length > 0) {
+      git(['commit', '-m', `release: ${tagName}`], worktreePath);
+      logger.success('Release changes committed to isolation branch.');
+    } else {
+      git(['commit', '--allow-empty', '-m', `release: ${tagName} (no-op build change)`], worktreePath);
+      logger.warn('No build file changes detected. Created an empty tracking commit for tag matching.');
     }
 
-    if (targetStep <= 3) {
-      logger.step(3, steps.length, steps[2]);
-      execFileSync('pnpm', ['--filter', `${CONFIG.cliPackageName}`, 'build'], {
-        cwd: CONFIG.repoRoot,
-        stdio: 'inherit'
-      });
-    }
+    logger.step(5, steps.length, steps[4]);
+    git(['tag', '-a', tagName, '-m', `Release ${tagName}`], worktreePath);
+    hasCreatedLocalTag = true;
+    logger.success(`Local tag ${tagName} generated successfully.`);
 
-    if (targetStep <= 4) {
-      logger.step(4, steps.length, steps[3]);
-      worktreePath = setupReleaseWorktree();
+    logger.step(6, steps.length, steps[5]);
+    runNpmPublish(worktreePath);
+    logger.success('Package deployed to global npm registry successfully.');
 
-      syncDirectories(CONFIG.distPath, worktreePath);
+    logger.step(7, steps.length, steps[6]);
+    
+    logger.info('Pushing release branch and tracking tags up to origin...');
+    git(['push', 'origin', CONFIG.npmBranch], worktreePath);
+    git(['push', 'origin', tagName], worktreePath);
 
-      writeReleaseManifest(worktreePath, CONFIG.cliPackagePath);
+    logger.info('Syncing monorepo parent changelogs and version definitions to main...');
+    git(['add', '.'], CONFIG.repoRoot);
+    git(['commit', '-m', `chore: version bump ${tagName} [skip ci]`], CONFIG.repoRoot);
+    git(['push'], CONFIG.repoRoot);
 
-      git(['add', '.'], worktreePath);
+    logger.step(8, steps.length, steps[7]);
+    createGitHubRelease(calculatedVersion, `Successfully published ${tagName}`);
 
-      const status = git(['status', '--porcelain'], worktreePath);
-      if (status.length > 0) {
-        git(['commit', '-m', `release: v${newVersion}`], worktreePath);
-        logger.success('Release changes committed to isolation branch.');
-      } else {
-        git(['commit', '--allow-empty', '-m', `release: v${newVersion} (no-op build change)`], worktreePath);
-        logger.warn('No build file changes detected. Created an empty tracking commit for tag matching.');
-      }
-    }
-
-    if (targetStep <= 5) {
-      logger.step(5, steps.length, steps[4]);
-      git(['tag', '-a', `${newVersion}-${CONFIG.packageManager}`, '-m', `Release v${newVersion}`], worktreePath);
-    }
-
-    if (targetStep <= 6) {
-      logger.step(6, steps.length, steps[5]);
-      runNpmPublish(worktreePath);
-    }
-
-    if (targetStep <= 7) {
-      logger.step(7, steps.length, steps[6]);
-      git(['push', 'origin', CONFIG.npmBranch], worktreePath);
-      git(['push', 'origin', `v${newVersion}`], worktreePath);
-
-      git(['add', '.'], CONFIG.repoRoot);
-      git(['commit', '-m', `chore: version bump v${newVersion} [skip ci]`], CONFIG.repoRoot);
-      git(['push'], CONFIG.repoRoot);
-    }
-
-    if (targetStep <= 8) {
-      logger.step(8, steps.length, steps[7]);
-
-      createGitHubRelease(newVersion, `Successfully published v${newVersion}`);
-
-      logger.success(`Release published successfully! v${newVersion} is live.`);
-    }
+    logger.success(`Release published successfully! ${tagName} is fully live. 🚀`);
   } catch (error) {
-    logger.error('Release workflow failed. Aborting operations...', error);
+    logger.error('Release workflow failed. Initiating automated repository rollback...', error);
+    
+    try {
+      if (hasCreatedLocalTag && calculatedVersion) {
+        const tagName = `v${calculatedVersion}`;
+        logger.warn(`Rolling back local tag reference: ${tagName}`);
+        try {
+          git(['tag', '-d', tagName], CONFIG.repoRoot);
+        } catch {}
+        if (worktreePath) {
+          try {
+            git(['tag', '-d', tagName], worktreePath);
+          } catch {}
+        }
+      }
+
+      logger.warn('Executing Git tree hard reset to restore uncommitted version changesets...');
+      git(['reset', '--hard', 'HEAD'], CONFIG.repoRoot);
+      
+      logger.success('Repository state successfully rolled back to a safe pre-release baseline.');
+    } catch (rollbackError) {
+      logger.error('Critical failure: Could not execute automated state recovery.', rollbackError);
+    }
+
     process.exit(1);
   } finally {
     if (worktreePath) {

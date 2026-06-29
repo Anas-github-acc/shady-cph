@@ -14,17 +14,15 @@ program
 program
   .command('sync')
   .description('Build the CLI and sync changes to the dedicated npm branch without updating versions')
-  .option('-s, --step <number>', 'Step number to start execution from', parseInt)
-  .action((options) => {
-    runSyncCommand(options.step);
+  .action(() => {
+    runSyncCommand();
   });
 
 program
   .command('release')
   .description('Consume changesets, bump versions, build, sync, tag, and publish to npm/GitHub')
-  .option('-s, --step <number>', 'Step number to start execution from', parseInt)
   .action((options) => {
-    runReleaseCommand(options.step);
+    runReleaseCommand();
   });
 
 // Handle uncaught errors gracefully
