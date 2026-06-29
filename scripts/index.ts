@@ -14,15 +14,15 @@ program
 program
   .command('sync')
   .description('Build the CLI and sync changes to the dedicated npm branch without updating versions')
-  .action(async () => {
-    await runSyncCommand();
+  .action(() => {
+    runSyncCommand();
   });
 
 program
   .command('release')
   .description('Consume changesets, bump versions, build, sync, tag, and publish to npm/GitHub')
-  .action(async () => {
-    await runReleaseCommand();
+  .action(() => {
+    runReleaseCommand();
   });
 
 // Handle uncaught errors gracefully

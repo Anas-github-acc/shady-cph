@@ -44,17 +44,13 @@ export function runSyncCommand(): void {
 
     logger.step(5, steps.length, steps[4]);
 
-    git(['add', '-A'], worktreePath);
+    git(['add', '.'], worktreePath);
 
     const status = git(['status', '--porcelain'], worktreePath);
 
-    if (status.stdout.length > 0) {
+    if (status.length > 0) {
       git(
-        [
-          'commit',
-          '-m',
-          `chore: sync packages changes at ${new Date().toISOString()}`,
-        ],
+        [ 'commit', '-m', `chore: sync packages changes at ${new Date().toISOString()}`,],
         worktreePath
       );
 
