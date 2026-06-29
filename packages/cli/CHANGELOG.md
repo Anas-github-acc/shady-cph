@@ -1,5 +1,11 @@
 # shady-cph
 
+## 1.0.5
+
+### Patch Changes
+
+- 6d6ff59: tsup build fix - add no external for @repo/shared-schemas
+
 ## 1.0.4
 
 ### Patch Changes
