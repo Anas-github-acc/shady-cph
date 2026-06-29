@@ -7,6 +7,7 @@ import { setupReleaseWorktree, cleanupReleaseWorktree } from './worktree.js';
 import { syncDirectories, copyPackageMetadata, clearWorktree } from './copy.js';
 import { getPackageManifest, writeReleaseManifest } from './version.js';
 import { runNpmPublish, createGitHubRelease } from './publish.js';
+import path from 'node:path';
 
 export function runReleaseCommand(skipRelease: boolean = false): void {
   const steps = [
