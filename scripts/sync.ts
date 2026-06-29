@@ -4,7 +4,7 @@ import { CONFIG } from './config.js';
 import { git } from './git.js';
 import { logger } from './logger.js';
 import { setupReleaseWorktree, cleanupReleaseWorktree } from './worktree.js';
-import { syncDirectories, copyPackageMetadata } from './copy.js';
+import { syncDirectories, copyPackageMetadata, clearWorktree } from './copy.js';
 
 export function runSyncCommand(): void {
   const steps = [
