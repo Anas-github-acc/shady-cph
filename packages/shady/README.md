@@ -53,7 +53,7 @@ sd submit solution.cpp
 ```
 
 
-See the [package source]() for more details.
+See the [package source](https://github.com/Anas-github-acc/shady-cph/tree/4.18.1-npm) for more details.
 
 <!-- **Note:**<br> -->
 
