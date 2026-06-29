@@ -17,21 +17,27 @@ export function writeReleaseManifest(
   worktreeDir: string,
   sourcePkgDir: string
 ): void {
-  const sourceManifest = getPackageManifest(sourcePkgDir);
+  const manifestPath = path.join(sourcePackagePath, 'package.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-  // Clean up monorepo-specific fields (like relative paths, workspace: protocols)
-  // so the package is immediately ready for clean global npm installations.
-  const releaseManifest: PackageManifest = {
-    ...sourceManifest,
-  };
+  // Automatically clean up dependencies that use the monorepo workspace protocol
+  if (manifest.dependencies) {
+    for (const [dep, version] of Object.entries(manifest.dependencies)) {
+      if (typeof version === 'string' && version.startsWith('workspace:')) {
+        delete manifest.dependencies[dep];
+      }
+    }
+  }
 
-  // Strip out development configurations not needed on the release branch
-  delete releaseManifest.devDependencies;
-  delete releaseManifest.scripts;
+  // Also clean up peer/devDependencies using workspace: protocol if present
+  if (manifest.devDependencies) {
+    for (const [dep, version] of Object.entries(manifest.devDependencies)) {
+      if (typeof version === 'string' && version.startsWith('workspace:')) {
+        delete manifest.devDependencies[dep];
+      }
+    }
+  }
 
-  fs.writeFileSync(
-    path.join(worktreeDir, 'package.json'),
-    JSON.stringify(releaseManifest, null, 2),
-    'utf8'
-  );
+  const targetPath = path.join(worktreePath, 'package.json');
+  fs.writeFileSync(targetPath, JSON.stringify(manifest, null, 2), 'utf8');
 }
