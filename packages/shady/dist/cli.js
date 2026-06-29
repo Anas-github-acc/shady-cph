@@ -649,7 +649,7 @@ async function runDaemon(opts) {
   const testcaseDir = resolveTestcaseDir(config);
   const app = Fastify({ logger: false });
   let inactivityTimeout = null;
-  const INACTIVITY_LIMIT_MS = 30 * 60 * 1e3;
+  const INACTIVITY_LIMIT_MS = 2 * 60 * 60 * 1e3;
   const resetInactivityTimer = () => {
     if (inactivityTimeout) {
       clearTimeout(inactivityTimeout);

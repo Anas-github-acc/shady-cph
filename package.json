@@ -6,9 +6,13 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
+    "sync": "tsx scripts/index.ts sync",
+    "release": "tsx scripts/index.ts release",
     "link": "cd packages/shady/ && npm link"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
+    "tsx": "^4.22.4",
     "turbo": "^2.0.0"
   },
   "engines": {

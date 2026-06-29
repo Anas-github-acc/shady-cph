@@ -100,7 +100,7 @@ export async function runDaemon(opts: { port?: number }) {
   const app = Fastify({ logger: false });
 
   let inactivityTimeout: NodeJS.Timeout | null = null;
-  const INACTIVITY_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
+  const INACTIVITY_LIMIT_MS = 2 * 60 * 60 * 1000; // 2 Hours
 
   const resetInactivityTimer = () => {
     if (inactivityTimeout) {
