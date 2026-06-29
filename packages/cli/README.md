@@ -45,7 +45,7 @@ sd run
 
 Before this download [Extension]() here and visit codeforces, you found a `Shady Insert`. The button insert the testcase to .testcase folder to your init directory
 <br>
-![Shady-Insert](https://github.com/Anas-github-acc/shady-cph/main/assets/shady-insert-preview-image.png)
+![Shady-Insert](https://github.com/Anas-github-acc/shady-cph/blob/main/assets/shady-insert-preview-image.png)
 
 Run your solution against the latest downloaded testcases:
 
