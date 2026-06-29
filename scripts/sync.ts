@@ -3,11 +3,8 @@ import { execFileSync } from 'node:child_process';
 import { CONFIG } from './config.js';
 import { git } from './git.js';
 import { logger } from './logger.js';
-import {
-  setupReleaseWorktree,
-  cleanupReleaseWorktree,
-} from './worktree.js';
-import { syncDirectories } from './copy.js';
+import { setupReleaseWorktree, cleanupReleaseWorktree } from './worktree.js';
+import { syncDirectories, copyPackageMetadata } from './copy.js';
 
 export function runSyncCommand(): void {
   const steps = [
@@ -40,7 +37,11 @@ export function runSyncCommand(): void {
       `Mirroring built artifacts from ${CONFIG.distPath} to worktree`
     );
 
+    // sync the compiler build
     syncDirectories(CONFIG.distPath, worktreePath);
+
+    // Sync the root metadata configurations shown in image_b1b7f5.png
+    copyPackageMetadata(worktreePath);
 
     logger.step(5, steps.length, steps[4]);
 
