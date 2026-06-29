@@ -1,0 +1,70 @@
+{
+  "name": "shady-cph",
+  "version": "1.0.3",
+  "description": "A competitive-programming-helper (cph) runner CLI: receives testcases from a browser extension (shady-cph-parser) and runs your solution against them.",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "anas",
+    "url": "https://x.com/anas_stz"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Anas-github-acc/shady-cph",
+    "directory": "packages/shady"
+  },
+  "keywords": [
+    "cph",
+    "cp runner",
+    "cph alternative",
+    "cph extension alternative",
+    "cph testcase runner",
+    "competitive programming test runner",
+    "atcoder test runner",
+    "cp-tools",
+    "cp",
+    "codeforces",
+    "leetcode",
+    "atcoder",
+    "codechef",
+    "local judge",
+    "shady"
+  ],
+  "bin": {
+    "sd": "./dist/cli.js",
+    "shady": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.18.1"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/websocket": "^11.2.0",
+    "commander": "^15.0.0",
+    "fast-glob": "^3.3.3",
+    "fastify": "^5.8.5",
+    "fs-extra": "^11.3.5",
+    "kleur": "^4.1.5",
+    "ora": "^9.4.1",
+    "prompts": "^2.4.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^26.0.1",
+    "@types/prompts": "^2.4.9",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3"
+  }
+}
