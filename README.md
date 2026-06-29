@@ -16,12 +16,18 @@ The [Shady-cph](https://github.com/Anas-github-acc/shady-cph) is distributed as 
 
 Using npm:
 ```shell
-$ npm i -g shady
+$ npm i -g shady-cph
+```
+
+Check help
+
+```bash
+shady --help
 ```
 
 Verify the installation:
 
-```dash
+```bash
 sd --version
 ```
 
