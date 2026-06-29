@@ -2,28 +2,42 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { CONFIG } from './config.js';
+import { git } from './git.js';
 import { logger } from './logger.js';
 
-export function syncDirectories(srcDir: string, destDir: string): void {
-  const items = fs.readdirSync(srcDir, { withFileTypes: true }); // read everything in /dist
+/**
+ * Forcefully clears out the git index and all physical files on the worktree branch
+ * to ensure a completely pristine blank slate.
+ */
+export function clearWorktree(worktreeDir: string): void {
+  logger.info('Purging old tracked and untracked files from release branch...');
 
   try {
-    const destItems = fs.readdirSync(destDir);
-    for (const item of destItems) {
-      if (item === '.git' || item === '.gitignore' || item === 'node_modules') {
-        // Explicitly wipe node_modules out if a process generated it inside the worktree
-        if (item === 'node_modules') {
-          fs.rmSync(path.join(destDir, item), { recursive: true, force: true });
-        }
-        continue;
-      }
-      fs.rmSync(path.join(destDir, item), { recursive: true, force: true });
+    git(['rm', '-rf', '.'], worktreeDir);
+  } catch {
+    // Quietly pass if the branch is already completely empty/orphan
+  }
+
+  if (fs.existsSync(worktreeDir)) {
+    const items = fs.readdirSync(worktreeDir);
+    for (const item of items) {
+      if (item === '.git') continue; // CRITICAL: Never delete the git lifecycle pointer
+      fs.rmSync(path.join(worktreeDir, item), { recursive: true, force: true });
     }
-  } catch {}
+  }
+}
+
+/**
+ * Copies compiled assets directly into the root of the worktree folder
+ */
+export function syncDirectories(srcDir: string, destDir: string): void {
+  if (!fs.existsSync(srcDir)) {
+    throw new Error(`Source distribution directory does not exist: ${srcDir}`);
+  }
+
+  const items = fs.readdirSync(srcDir, { withFileTypes: true });
 
   for (const item of items) {
-    if (item.name === 'node_modules') continue;
-
     const srcPath = path.join(srcDir, item.name);
     const destPath = path.join(destDir, item.name);
 
@@ -37,8 +51,7 @@ export function syncDirectories(srcDir: string, destDir: string): void {
 }
 
 /**
- * Copies essential package metadata directly into the release worktree root
- * as indicated by the file configuration shown in image_b1b7f5.png
+ * Injects required configuration files from image_b1b7f5.png directly into the root
  */
 export function copyPackageMetadata(worktreeDir: string): void {
   const metadataFiles = [

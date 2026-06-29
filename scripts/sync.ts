@@ -33,22 +33,16 @@ export function runSyncCommand(): void {
     worktreePath = setupReleaseWorktree();
 
     logger.step(4, steps.length, steps[3]);
-    logger.info(
-      `Mirroring built artifacts from ${CONFIG.distPath} to worktree`
-    );
 
-    // sync the compiler build
+    clearWorktree(worktreePath);
+    logger.info(`Mirroring built artifacts from ${CONFIG.distPath} to worktree`);
     syncDirectories(CONFIG.distPath, worktreePath);
-
-    // Sync the root metadata configurations shown in image_b1b7f5.png
     copyPackageMetadata(worktreePath);
 
     logger.step(5, steps.length, steps[4]);
 
     git(['add', '.'], worktreePath);
-
     const status = git(['status', '--porcelain'], worktreePath);
-
     if (status.length > 0) {
       git(
         [ 'commit', '-m', `chore: sync packages changes at ${new Date().toISOString()}`,],
