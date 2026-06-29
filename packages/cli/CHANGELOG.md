@@ -1,5 +1,11 @@
 # shady-cph
 
+## 1.0.4
+
+### Patch Changes
+
+- e665369: missing /dist folder
+
 ## 1.0.3
 
 ### Patch Changes
