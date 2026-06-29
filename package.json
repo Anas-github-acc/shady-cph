@@ -7,7 +7,7 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "sync": "tsx scripts/index.ts sync",
-    "release": "./npm-secret.sh && tsx scripts/index.ts release",
+    "release": "tsx scripts/index.ts release",
     "link": "cd packages/cli/ && npm link"
   },
   "devDependencies": {
