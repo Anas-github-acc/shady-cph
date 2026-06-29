@@ -8,7 +8,7 @@ import { syncDirectories, copyPackageMetadata } from './copy.js';
 import { getPackageManifest, writeReleaseManifest } from './version.js';
 import { runNpmPublish, createGitHubRelease } from './publish.js';
 
-export function runReleaseCommand(): void {
+export function runReleaseCommand(skipRelease: boolean = false): void {
   const steps = [
     'Verifying clean git status',
     'Processing Changesets (version bump & changelog)',
@@ -74,8 +74,12 @@ export function runReleaseCommand(): void {
     logger.success(`Local tag ${tagName} generated successfully.`);
 
     logger.step(6, steps.length, steps[5]);
-    runNpmPublish(worktreePath);
-    logger.success('Package deployed to global npm registry successfully.');
+    if (skipRelease) {
+      runNpmPublish(worktreePath);
+      logger.success('Package deployed to global npm registry successfully.');
+    } else {
+      logger.info('Skipping NPM Release')
+    }
 
     logger.step(7, steps.length, steps[6]);
     
@@ -91,7 +95,7 @@ export function runReleaseCommand(): void {
     logger.step(8, steps.length, steps[7]);
     createGitHubRelease(calculatedVersion, `Successfully published ${tagName}`);
 
-    logger.success(`Release published successfully! ${tagName} is fully live. 🚀`);
+    logger.success(`Release published successfully! ${tagName} is fully live.`);
   } catch (error) {
     logger.error('Release workflow failed. Initiating automated repository rollback...', error);
     
