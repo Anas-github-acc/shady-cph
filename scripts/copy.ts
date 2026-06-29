@@ -6,8 +6,8 @@ import { git } from './git.js';
 import { logger } from './logger.js';
 
 /**
- * Forcefully clears out the git index and all physical files on the worktree branch
- * to ensure a completely pristine blank slate.
+ * Forcefully clears out the git index and tracked/untracked physical files
+ * on the isolated worktree to ensure a completely pristine blank slate.
  */
 export function clearWorktree(worktreeDir: string): void {
   logger.info('Purging old tracked and untracked files from release branch...');
@@ -28,25 +28,21 @@ export function clearWorktree(worktreeDir: string): void {
 }
 
 /**
- * Copies compiled assets directly into the root of the worktree folder
- * Strictly ignores structural monorepo folders if they appear in the source path.
+ * Copies compiled assets directly from a source into a target destination folder.
+ * Highly robust recursive tree copy.
  */
 export function syncDirectories(srcDir: string, destDir: string): void {
   if (!fs.existsSync(srcDir)) {
     throw new Error(`Source distribution directory does not exist: ${srcDir}`);
   }
 
-  // Folders we absolutely block from leaking into the distribution branch root
-  const forbiddenDirs = ['apps', 'packages', 'node_modules', '.turbo'];
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
 
   const items = fs.readdirSync(srcDir, { withFileTypes: true });
 
   for (const item of items) {
-    // Defensive check: skip forbidden directories entirely
-    if (item.isDirectory() && forbiddenDirs.includes(item.name)) {
-      continue;
-    }
-
     const srcPath = path.join(srcDir, item.name);
     const destPath = path.join(destDir, item.name);
 
@@ -60,7 +56,7 @@ export function syncDirectories(srcDir: string, destDir: string): void {
 }
 
 /**
- * Injects required configuration files from image_b1b7f5.png directly into the root
+ * Injects required configuration files directly into the root of the worktree branch.
  */
 export function copyPackageMetadata(worktreeDir: string): void {
   const metadataFiles = [
@@ -87,4 +83,3 @@ export function copyPackageMetadata(worktreeDir: string): void {
     }
   }
 }
-

@@ -53,8 +53,11 @@ export function runReleaseCommand(skipRelease: boolean = false): void {
 
     logger.step(4, steps.length, steps[3]);
     worktreePath = setupReleaseWorktree();
-
-    syncDirectories(CONFIG.distPath, worktreePath);
+    
+    clearWorktree(worktreePath);
+    const targetDistPath = path.join(worktreePath, 'dist');
+    
+    syncDirectories(CONFIG.distPath, targetDistPath);
     copyPackageMetadata(worktreePath);
     writeReleaseManifest(worktreePath, CONFIG.cliPackagePath);
 
@@ -103,7 +106,7 @@ export function runReleaseCommand(skipRelease: boolean = false): void {
 
 
     logger.step(8, steps.length, steps[7]);
-    createGitHubRelease(calculatedVersion, `Successfully published ${tagName}`);
+    createGitHubRelease(calculatedVersion, tagName, `Successfully published ${tagName}`);
 
     logger.success(`Release published successfully! ${tagName} is fully live.`);
   } catch (error) {

@@ -17,6 +17,7 @@ export function runNpmPublish(cwd: string): void {
 
 export function createGitHubRelease(
   version: string,
+  tagName: string,
   changelogText: string
 ): void {
   logger.info(`Creating GitHub Release draft for v${version}...`);
@@ -24,7 +25,7 @@ export function createGitHubRelease(
   try {
     execFileSync(
       'gh',
-      ['release', 'create', `v${version}`, '--title', `v${version}`, '--notes', changelogText || `Release version ${version}`,],
+      ['release', 'create', `v${version}`, '--title', `${tagName}`, '--notes', changelogText || `Release version ${version}`,],
       {
         stdio: 'inherit',
       }
