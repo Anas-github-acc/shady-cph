@@ -6,7 +6,7 @@ export function runNpmPublish(cwd: string): void {
 
   // --no-git-checks tells npm not to worry about our temporary worktree environment status
   execFileSync(
-    'npm',
+    'pnpm',
     ['publish', '--access', 'public', '--no-git-checks'],
     {
       cwd,
