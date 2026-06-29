@@ -41,7 +41,7 @@ export function runReleaseCommand(): void {
     logger.info(`Target release version calculated: v${newVersion}`);
 
     logger.step(3, steps.length, steps[2]);
-    execFileSync('pnpm', ['--filter', 'shady', 'build'], {
+    execFileSync('pnpm', ['--filter', `${CONFIG.cliPackageName}`, 'build'], {
       cwd: CONFIG.repoRoot,
       stdio: 'inherit'
     });

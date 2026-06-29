@@ -8,7 +8,7 @@
     "lint": "turbo lint",
     "sync": "tsx scripts/index.ts sync",
     "release": "tsx scripts/index.ts release",
-    "link": "cd packages/shady/ && npm link"
+    "link": "cd packages/cli/ && npm link"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",

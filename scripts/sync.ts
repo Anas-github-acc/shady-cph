@@ -24,7 +24,7 @@ export function runSyncCommand(): void {
     logger.step(2, steps.length, steps[1]);
     logger.info('Compiling TypeScript distribution bundles...');
 
-    execFileSync('pnpm', ['--filter', 'shady', 'build'], {
+    execFileSync('pnpm', ['--filter', `${ CONFIG.cliPackageName }`, 'build'], {
       cwd: CONFIG.repoRoot,
       stdio: 'inherit',
     });
