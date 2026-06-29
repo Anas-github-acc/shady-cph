@@ -54,7 +54,15 @@ export function runReleaseCommand(): void {
     writeReleaseManifest(worktreePath, CONFIG.cliPackagePath);
 
     git(['add', '.'], worktreePath);
-    git(['commit', '-m', `release: v${newVersion}`], worktreePath);
+    
+    const status = git(['status', '--porcelain'], worktreePath);
+    if (status.length > 0) {
+      git(['commit', '-m', `release: v${newVersion}`], worktreePath);
+      logger.success('Release changes committed to isolation branch.');
+    } else {
+      git(['commit', '--allow-empty', '-m', `release: v${newVersion} (no-op build change)`], worktreePath);
+      logger.warn('No build file changes detected. Created an empty tracking commit for tag matching.');
+    }
 
     logger.step(5, steps.length, steps[4]);
     git(['tag', '-a', `${newVersion}-${CONFIG.packageManager}`, '-m', `Release v${newVersion}`], worktreePath);
