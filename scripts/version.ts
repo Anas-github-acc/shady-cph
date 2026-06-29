@@ -17,7 +17,7 @@ export function writeReleaseManifest(
   worktreeDir: string,
   sourcePkgDir: string
 ): void {
-  const manifestPath = path.join(sourcePackagePath, 'package.json');
+  const manifestPath = path.join(sourcePkgDir, 'package.json');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
   // Automatically clean up dependencies that use the monorepo workspace protocol
@@ -38,6 +38,6 @@ export function writeReleaseManifest(
     }
   }
 
-  const targetPath = path.join(worktreePath, 'package.json');
+  const targetPath = path.join(worktreeDir, 'package.json');
   fs.writeFileSync(targetPath, JSON.stringify(manifest, null, 2), 'utf8');
 }
