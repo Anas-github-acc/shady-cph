@@ -25,7 +25,7 @@ export function createGitHubRelease(
   try {
     execFileSync(
       'gh',
-      ['release', 'create', `v${version}`, '--title', `${tagName}`, '--notes', changelogText || `Release version ${version}`,],
+      ['release', 'create', `${tagName}`, '--title', `v${vresion}`, '--notes', changelogText || `Release version ${version}`,],
       {
         stdio: 'inherit',
       }

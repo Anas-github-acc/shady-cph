@@ -51,7 +51,7 @@
   "dependencies": {
     "@fastify/cors": "^11.2.0",
     "@fastify/websocket": "^11.2.0",
-    "@repo/shared-schemas": "workspace:*",
+    "@repo/shared-schemas": "workspace:^1.0.0",
     "commander": "^15.0.0",
     "fast-glob": "^3.3.3",
     "fastify": "^5.8.5",

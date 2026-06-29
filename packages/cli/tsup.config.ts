@@ -9,5 +9,6 @@ export default defineConfig({
   clean: true,
   banner: {
     js: '#!/usr/bin/env node'
-  }
+  },
+  noExternal: ['@repo/shared-schemas'],
 });

@@ -584,14 +584,43 @@ async function viewCommand(opts) {
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import websocketPlugin from "@fastify/websocket";
-import { z as z2 } from "zod";
+import { z as z3 } from "zod";
 import fs9 from "fs-extra";
-import { PayloadSchema } from "@repo/shared-schemas";
+
+// ../shared-schemas/dist/index.js
+import { z as z2 } from "zod";
+var PayloadSchema = z2.object({
+  parser: z2.object({
+    version: z2.union([z2.string(), z2.number()]),
+    name: z2.string()
+  }).optional(),
+  platform: z2.string(),
+  problem_number: z2.string().optional(),
+  contest_number: z2.union([z2.string(), z2.number()]).optional(),
+  contestId: z2.union([z2.string(), z2.number()]).optional(),
+  question_label: z2.string().optional(),
+  problemIndex: z2.string().optional(),
+  label: z2.string().optional(),
+  question_url: z2.string().optional(),
+  testcase: z2.object({
+    input: z2.string(),
+    output: z2.string()
+  })
+});
 var SubmissionSchema = z2.object({
   sourceCode: z2.string(),
   filename: z2.string(),
+  // Optional language code override (e.g., "54" for G++17)
   programTypeId: z2.string().optional(),
   language: z2.string()
+});
+
+// src/core/daemon.ts
+var SubmissionSchema2 = z3.object({
+  sourceCode: z3.string(),
+  filename: z3.string(),
+  programTypeId: z3.string().optional(),
+  language: z3.string()
 });
 var BodySchema = {
   type: "object",
@@ -768,7 +797,7 @@ async function runDaemon(opts) {
   });
   app.post("/submit", async (request, reply) => {
     try {
-      const submission = SubmissionSchema.parse(request.body);
+      const submission = SubmissionSchema2.parse(request.body);
       connectedSockets.forEach((s, idx) => {
         console.log(`  -> Socket [${idx}] readyState: ${s?.readyState}`);
       });
