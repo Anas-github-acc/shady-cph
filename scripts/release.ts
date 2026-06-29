@@ -41,7 +41,7 @@ export function runReleaseCommand(skipRelease: boolean = false): void {
 
     const updatedManifest = getPackageManifest(CONFIG.cliPackagePath);
     calculatedVersion = updatedManifest.version;
-    const tagName = `v${calculatedVersion}`;
+    const tagName = `${calculatedVersion}-${CONFIG.packageManager}`;
     logger.info(`Target release version calculated: ${tagName}`);
 
     logger.step(3, steps.length, steps[2]);
@@ -101,7 +101,7 @@ export function runReleaseCommand(skipRelease: boolean = false): void {
     
     try {
       if (hasCreatedLocalTag && calculatedVersion) {
-        const tagName = `v${calculatedVersion}`;
+        const tagName = `${calculatedVersion}-${CONFIG.packageManager}`;
         logger.warn(`Rolling back local tag reference: ${tagName}`);
         try {
           git(['tag', '-d', tagName], CONFIG.repoRoot);

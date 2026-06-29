@@ -1,4 +1,4 @@
-# Shady-cph v1.0.0
+# Shady-cph v1.0.1
 
 The **Shady-cph** is a CLI tool for Competitive Programming Helper (CPH) 
 
@@ -44,7 +44,8 @@ sd run
 ```
 
 Before this download [Extension]() here and visit codeforces, you found a `Shady Insert`. The button insert the testcase to .testcase folder to your init directory
-![Shady-Insert](https://raw.githubusercontent.com/Anas-github-acc/repo/main/assets/shady-insert-preview-image.png)
+<br>
+![Shady-Insert](https://github.com/Anas-github-acc/shady-cph/main/assets/shady-insert-preview-image.png)
 
 Run your solution against the latest downloaded testcases:
 
@@ -52,14 +53,14 @@ Run your solution against the latest downloaded testcases:
 sd test main.cpp
 ```
 
-Submit your solution to codeforces:
+Submit your solution to [codeforces](https://codeforces.com/):
 
 ```bash
 sd submit solution.cpp
 ```
 
 
-See the [package source](https://github.com/Anas-github-acc/shady-cph/tree/4.18.1-npm) for more details.
+See the [package source](https://github.com/Anas-github-acc/shady-cph/tree/1.0.1-npm) for more details.
 
 <!-- **Note:**<br> -->
 
@@ -78,8 +79,7 @@ See the [package source](https://github.com/Anas-github-acc/shady-cph/tree/4.18.
 
 ## Support
 
-if you have doubt, need Demo or need new feature, Contact me on my email, i will respond in less than 6 hour
-Email: anas.ahamad955@gmail.com
+if you have doubt, need Demo or need new feature, Contact me on my email, i will respond in less than 6 hour. Email to : anas.ahamad955@gmail.com
 
 <!-- Tested in Chrome 74-75, Firefox 66-67, IE 11, Edge 18, Safari 11-12, & Node.js 8-12.<br> -->
 <!-- Automated [browser](https://saucelabs.com/u/lodash) & [CI](https://travis-ci.org/lodash/lodash/) test runs are available. -->
