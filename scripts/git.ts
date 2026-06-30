@@ -6,7 +6,7 @@ export interface ExecResult {
   stderr: string;
 }
 
-export function git(args: string[], cwd = process.cwd()) {
+export function git(args: string[], cwd = process.cwd(), silent: boolean = false) {
   try {
     const stdout = execFileSync("git", args, {
       cwd,
@@ -16,7 +16,7 @@ export function git(args: string[], cwd = process.cwd()) {
 
     return stdout.trim();
   } catch (error) {
-    logger.error(`Git command failed: git ${args.join(" ")}`);
+    if (!silent) logger.error(`Git command failed: git ${args.join(" ")}`);
     throw error;
   }
 }

@@ -98,7 +98,7 @@ export function runReleaseCommand(skipRelease: boolean = false): void {
     git(['add', '.'], CONFIG.repoRoot);
 
     try {
-      git(['diff', '--cached', '--quiet'], CONFIG.repoRoot);
+      git(['diff', '--cached', '--quiet'], CONFIG.repoRoot, true);
       console.log('No changes to commit. Skipping commit.');
     } catch {
       git(['commit', '-m', `chore: version bump ${tagName} [skip ci]`], CONFIG.repoRoot);
