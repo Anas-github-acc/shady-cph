@@ -1,18 +1,18 @@
 {
   "name": "extension",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
-    "bump:patch": "pnpm version patch --tag-version-prefix='ext-v' -m 'chore(extension): bump version to ext-v%s'",
-    "bump:minor": "pnpm version minor --tag-version-prefix='ext-v' -m 'chore(extension): bump version to ext-v%s'",
-    "bump:major": "pnpm version major --tag-version-prefix='ext-v' -m 'chore(extension): bump version to ext-v%s'",
-    "push:tags": "git push origin main && git push origin ext-v$npm_package_version",
-    "release:patch": "pnpm run bump:patch && pnpm run push:tags",
-    "release:minor": "pnpm run bump:minor && pnpm run push:tags",
-    "release:major": "pnpm run bump:major && pnpm run push:tags"
+    "bump:patch": "pnpm version patch --no-git-tag-version",
+    "bump:minor": "pnpm version minor --no-git-tag-version",
+    "bump:major": "pnpm version major --no-git-tag-version",
+    "git:release": "VERSION=$(node -p \"require('./package.json').version\") && git add package.json && git commit -m \"chore(extension): bump version to ext-v$VERSION\" && git tag ext-v$VERSION && git push origin main && git push origin ext-v$VERSION",
+    "release:patch": "pnpm run bump:patch && pnpm run git:release",
+    "release:minor": "pnpm run bump:minor && pnpm run git:release",
+    "release:major": "pnpm run bump:major && pnpm run git:release"
   },
   "dependencies": {
     "@repo/shared-schemas": "workspace:*"
