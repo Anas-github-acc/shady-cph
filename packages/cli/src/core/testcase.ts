@@ -11,6 +11,7 @@ export interface RawTestCase {
 // this delimiter line. Kept distinct from "INPUT"/"OUTPUT" so it can't
 // collide with normal testcase content.
 const CASE_DELIMITER = '@@@ CASE @@@';
+const HEADER_NOTE = `Note: to add more testcases add a line \`${CASE_DELIMITER}\` between testcases to separate them`;
 
 export function sanitizeSegment(segment: string): string {
   return segment.trim().replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -80,14 +81,23 @@ export async function appendTestCase(filePath: string, testcase: RawTestCase): P
 
 export async function writeTestCase(filePath: string, testcase: RawTestCase): Promise<{ totalCases: number }> {
   await fs.ensureDir(path.dirname(filePath));
-  await fs.writeFile(filePath, serializeTestCases([testcase]), 'utf-8');
+  const content = `${HEADER_NOTE}\n\n${serializeTestCases([testcase])}`;
+  await fs.writeFile(filePath, content, 'utf-8');
   return { totalCases: 1 };
 }
 
 
 export async function readTestCases(filePath: string): Promise<RawTestCase[]> {
   const content = await fs.readFile(filePath, 'utf-8');
-  return parseTestCases(content);
+  const lines = content.split(/\r?\n/);
+  if (lines[0].startsWith("Note:")) {
+    lines.shift();
+
+    while (lines.length > 0 && lines[0].trim() === "") {
+      lines.shift();
+    }
+  }
+  return parseTestCases(lines.join("\n"));
 }
 
 export async function writeRunLatest(testcaseDir: string, fileName: string): Promise<void> {

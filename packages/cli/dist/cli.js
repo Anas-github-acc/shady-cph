@@ -254,6 +254,7 @@ import fs7 from "fs-extra";
 import fs5 from "fs-extra";
 import path5 from "path";
 var CASE_DELIMITER = "@@@ CASE @@@";
+var HEADER_NOTE = `Note: to add more testcases add a line \`${CASE_DELIMITER}\` between testcases to separate them`;
 function sanitizeSegment(segment) {
   return segment.trim().replace(/[^a-zA-Z0-9_-]/g, "_");
 }
@@ -290,12 +291,22 @@ function escapeRegExp(s) {
 }
 async function writeTestCase(filePath, testcase) {
   await fs5.ensureDir(path5.dirname(filePath));
-  await fs5.writeFile(filePath, serializeTestCases([testcase]), "utf-8");
+  const content = `${HEADER_NOTE}
+
+${serializeTestCases([testcase])}`;
+  await fs5.writeFile(filePath, content, "utf-8");
   return { totalCases: 1 };
 }
 async function readTestCases(filePath) {
   const content = await fs5.readFile(filePath, "utf-8");
-  return parseTestCases(content);
+  const lines = content.split(/\r?\n/);
+  if (lines[0].startsWith("Note:")) {
+    lines.shift();
+    while (lines.length > 0 && lines[0].trim() === "") {
+      lines.shift();
+    }
+  }
+  return parseTestCases(lines.join("\n"));
 }
 async function writeRunLatest(testcaseDir, fileName) {
   await fs5.writeFile(path5.join(testcaseDir, ".run-latest"), fileName, "utf-8");
@@ -480,7 +491,7 @@ async function testCommand(solutionFile, opts) {
       const a = actLines[j];
       let lineText = e;
       if (e !== a) {
-        lineText = kleur.red(`- ${e}`);
+        lineText = kleur.red(`${e}`);
       }
       if (opts.number) {
         expectedLinesToPrint.push(`${j + 1}. ${lineText}`);

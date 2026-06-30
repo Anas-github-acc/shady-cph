@@ -115,7 +115,7 @@ export async function testCommand(solutionFile: string, opts: TestCommandOptions
       const a = actLines[j];
       let lineText = e;
       if (e !== a) {
-        lineText = kleur.red(`- ${e}`);
+        lineText = kleur.red(`${e}`);
       }
       if (opts.number) {
         expectedLinesToPrint.push(`${j + 1}. ${lineText}`);
