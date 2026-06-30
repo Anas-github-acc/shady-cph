@@ -1,13 +1,14 @@
 # CPH (Fetch Testcases From Codeforces)
 
-A lightweight Competitive Programming Helper (CPH) CLI that automatically receives sample testcases via browser extension, stores them locally, and runs your solution against them directly from your terminal via **shady cli**.
+A lightweight CLI Tool for Competitive Programming Helper (CPH) that fetched sample testcases, stores them locally, runs your solution against them directly from your terminal via **shady cli** and submit the solution to the coding platform.
 
-No complex setup, No heavy UI. Just a fast CLI and minimal command to get the testcase and run.
+> [!NOTE]
+> No complex setup, No heavy UI. Just a fast CLI and minimal command to fetch the Testcase, Run and Submit.
 
----
+The [Shady-cph](https://www.npmjs.com/package/shady-cph) is distributed as a global CLI package on **npm package**.
 
-### Suppoted Coding Platform
-[![Codeforces](https://img.shields.io/badge/Codeforces-Compatible-blue.svg)](https://codeforces.com/)
+### Coding Platform Supported
+- [Codeforces](https://codeforces.com/)
 
 ### Language Support
 [![C++](https://img.shields.io/badge/C%2B%2B-Supported-success.svg?logo=cplusplus&logoColor=white)](#)
@@ -18,17 +19,16 @@ No complex setup, No heavy UI. Just a fast CLI and minimal command to get the te
 [![Go](https://img.shields.io/badge/Go-Supported-success.svg?logo=go&logoColor=white)](#)
 [![Rust](https://img.shields.io/badge/Rust-Supported-success.svg?logo=rust&logoColor=white)](#)
 
----
 
-## About
+## Must Read
 
-**Shady CPH** is a command-line tool built for competitive programmers who prefer fast performance via our **shady-cli** and automatic testcase fetching via our **browser extension**.
+**Shady CPH** is a command-line tool built for competitive programmers who prefer fast performance and automat majority of the coding processes like fetching testcase, running test and submitting code.
 
-**Shady CP Parser** browser extension parses sample testcases directly from competitive programming platforms (like Codeforces) and sends them to your local CLI server.
+We uses **Browser Extension** to parses Sample Testcases directly from competitive programming platforms (like Codeforces) and sends them to your workspace.
 
-The CLI starts a small local background daemon/server that listens for incoming testcase, stores them in your project, and lets you test solutions with a single command.
+The CLI starts a small local background daemon server that listens for incoming testcase and lets you **Submit** solutions back to **Coding Platform**.
 
----
+Uses your system coding environment to run Test across the Testcases. If you want to edit testcase you can do inside .testcase/* and to change the config edit **shady.json**
 
 ## Quick Start
 
@@ -66,14 +66,17 @@ The server listens on `http://localhost:42585` by default.
 To execute your code against the downloaded testcases, run:
 ```bash
 sd test main.cpp
-# or
-sd test solution.py
 ```
+
 The runner compiles your solution (if needed), executes it against all saved testcases, and displays a beautiful colored diff of any failing cases in the terminal.
 
----
+### 6. Submit Code to Coding Platform
+While submitting the solution your question page should be opened in the background and your browser extension should be showing connected to daemon
+```bash
+sd submit main.cpp
+```
 
-## CLI Commands & Options
+## Commands & Options
 
 | Command | Arguments / Options | Description |
 | :--- | :--- | :--- |
@@ -85,16 +88,18 @@ The runner compiles your solution (if needed), executes it against all saved tes
 | **`sd logs`** | — | View and tail the log stream of the background server daemon. |
 | **`sd submit <solution-file>`** | `[--compiler <string>]`<br>| | submit the solution code to the **codeforces**. Submit to latest fetch question (e.g., 2304D ) and if you want to change the question (e.g., 2304A) edit file `.testcase/.run-latest` |
 | **`sd clean`**| — | Stops the server and cleans up/deletes all downloaded testcase files. |
----
 
 ## Features
-- Terminal Lover
-- Automated testcase fetching.
-- Lightweight background daemon (`sd run`, `sd stop`, `sd status`, `sd logs`).
+- Single Command for Fetch Testcase from codeforces.
+- Test your solution across the Testcase.
+- Single command for Submit Solution to codeforces.
+- Extremely Fast and Lightweight Performance.
+- Auto Detect Languages.
+- Customisable config via shady.json
 - No heavy IDE dependencies.
 - Multi-language compilation and runner.
 - Flexible configuration (`shady.json`).
-- Colored terminal diffs.
+- Colored terminal output.
 - Runtime error and compilation error.
 
 ---
