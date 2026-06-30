@@ -1,0 +1,45 @@
+name: Publish Extension Release
+
+on:
+  push:
+    tags:
+      - 'ext-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Zip Extension
+        run: |
+          cd apps/extension/shady-extension-helper
+          zip -r ../../../shady-extension-helper.zip ./*
+
+      - name: Create Versioned Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: shady-extension-helper.zip
+          generate_release_notes: true
+
+      - name: Update Floating Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag -f ext-latest
+          git push -f origin ext-latest
+          
+          gh release delete ext-latest -y || true
+          
+          gh release view ${{ github.ref_name }} --json body --jq .body > release_notes.txt
+          
+          echo -e "*(This floating release always points to the newest build)*\n\n" > final_notes.txt
+          cat release_notes.txt >> final_notes.txt
+          
+          gh release create ext-latest shady-extension-helper.zip \
+            --title "Latest Extension (${{ github.ref_name }})" \
+            --notes-file final_notes.txt

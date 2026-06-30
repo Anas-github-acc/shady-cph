@@ -4,15 +4,25 @@ import { DefineManifestOptions } from "@samrum/vite-plugin-web-extension";
 export const manifest: DefineManifestOptions = {
   manifest_version: 3,
   name: "Shady CPH",
-  version: "1.2.0",
+  version: "1.0.0",
   description: "Parses and sends CP testcases to localhost or logs to console.",
   permissions: ["storage"],
   background: {
     service_worker: "src/background.ts",
     type: "module"
   },
+  icons: {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   action: {
-    default_popup: "src/popup.html"
+    default_popup: "src/popup.html",
+    default_icon: {
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    }
   },
   content_scripts: [
     {

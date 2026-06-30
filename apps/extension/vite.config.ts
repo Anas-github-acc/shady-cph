@@ -16,7 +16,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: path.resolve(__dirname, "shady-all-extension"),
+    outDir: path.resolve(__dirname, "shady-extension-helper"),
     emptyOutDir: true,
   }
 });
