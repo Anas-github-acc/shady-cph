@@ -1,5 +1,11 @@
 # shady-cph
 
+## 1.0.6
+
+### Patch Changes
+
+- 43c6a08: add instruction to testcase file to use @@@ CASE @@@ delimiter to separate testcases
+
 ## 1.0.5
 
 ### Patch Changes
